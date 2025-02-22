@@ -117,14 +117,62 @@ const Main = () => {
         endMinutes
       ).getTime();
 
+      events.forEach((el2) => {
+        const startYear2 = el2.startDate.getFullYear();
+        const startMonth2 = el2.startDate.getMonth();
+        const startDate2 = el2.startDate.getDate();
+        const startHours2 = el2.startTime.getHours();
+        const startMinutes2 = el2.startTime.getMinutes();
+        const startTime2 = new Date(
+          startYear2,
+          startMonth2,
+          startDate2,
+          startHours2,
+          startMinutes2
+        ).getTime();
+        const endYear2 = el2.endDate.getFullYear();
+        const endMonth2 = el2.endDate.getMonth();
+        const endDate2 = el2.endDate.getDate();
+        const endHours2 = el2.endTime.getHours();
+        const endMinutes2 = el2.endTime.getMinutes();
+        const endTime2 = new Date(
+          endYear2,
+          endMonth2,
+          endDate2,
+          endHours2,
+          endMinutes2
+        ).getTime();
+        if (el.id !== el2.id) {
+          if (startTime2 >= startTime && startTime2 < endTime) {
+            Toast.show({
+              type: "error",
+              position: "top",
+              text1: "Error",
+              text2: "Time intersects with other. Data was not saved.",
+            });
+
+            notSave = true;
+          }
+
+          if (endTime2 >= startTime && endTime2 < endTime) {
+            Toast.show({
+              type: "error",
+              position: "top",
+              text1: "Error",
+              text2: "Time intersects with other. Data was not saved.",
+            });
+            notSave = true;
+          }
+        }
+      });
+
       const timeNow = new Date().getTime();
-      if (el.new && !el.eventName){
+      if (el.new && !el.eventName) {
         Toast.show({
           type: "error",
           position: "top",
           text1: "Error",
-          text2:
-            "Input event name. Data was not saved.",
+          text2: "Input event name. Data was not saved.",
         });
         notSave = true;
       }
@@ -133,10 +181,9 @@ const Main = () => {
           type: "error",
           position: "top",
           text1: "Error",
-          text2:
-            "You can't create events in the past. The extra event was removed.",
+          text2: "You can't create events in the past. Data was not saved.",
         });
-        copyEvents = copyEvents.filter((copyEl) => copyEl.id !== el.id);
+        notSave = true;
         err = true;
       }
 
@@ -146,9 +193,9 @@ const Main = () => {
           position: "top",
           text1: "Error",
           text2:
-            "The end date could not be before start date. The extra event was removed.",
+            "The end date could not be before start date.  Data was not saved.",
         });
-        copyEvents = copyEvents.filter((copyEl) => copyEl.id !== el.id);
+        notSave = true;
         err = true;
       }
     });
@@ -225,7 +272,7 @@ const Main = () => {
                 setEventName={(name) => {
                   setEvents((prevEvents) =>
                     prevEvents.map((event) =>
-                      event.id === el.id ? { ...event, eventName: name } : event
+                      event.id === el.id ? { ...event, eventName: name, new: true } : event
                     )
                   );
                 }}
@@ -233,7 +280,7 @@ const Main = () => {
                 setStartDate={(date) => {
                   setEvents((prevEvents) =>
                     prevEvents.map((event) =>
-                      event.id === el.id ? { ...event, startDate: date } : event
+                      event.id === el.id ? { ...event, startDate: date, new: true } : event
                     )
                   );
                 }}
@@ -241,7 +288,7 @@ const Main = () => {
                 setStartTime={(time) => {
                   setEvents((prevEvents) =>
                     prevEvents.map((event) =>
-                      event.id === el.id ? { ...event, startTime: time } : event
+                      event.id === el.id ? { ...event, startTime: time, new: true } : event
                     )
                   );
                 }}
@@ -249,7 +296,7 @@ const Main = () => {
                 setEndDate={(date) => {
                   setEvents((prevEvents) =>
                     prevEvents.map((event) =>
-                      event.id === el.id ? { ...event, endDate: date } : event
+                      event.id === el.id ? { ...event, endDate: date, new: true } : event
                     )
                   );
                 }}
@@ -257,7 +304,7 @@ const Main = () => {
                 setEndTime={(time) => {
                   setEvents((prevEvents) =>
                     prevEvents.map((event) =>
-                      event.id === el.id ? { ...event, endTime: time } : event
+                      event.id === el.id ? { ...event, endTime: time, new: true } : event
                     )
                   );
                 }}
@@ -265,15 +312,15 @@ const Main = () => {
                 setRepeat={(repeat) => {
                   setEvents((prevEvents) =>
                     prevEvents.map((event) =>
-                      event.id === el.id ? { ...event, repeat } : event
+                      event.id === el.id ? { ...event, repeat, new: true } : event
                     )
                   );
                 }}
-                editable={currentTime < startTime || el.new}
+                editable={!!(currentTime < startTime || el.new)}
               />
               <TouchableWithoutFeedback onPress={() => removeEvent(el.id)}>
                 <View style={styles.removeButton}>
-                  <MaterialIcons name="delete" size={24} color="black" />
+                  <MaterialIcons name="delete" size={24} color="rgba(255, 0, 0, 0.5 )" />
                 </View>
               </TouchableWithoutFeedback>
             </React.Fragment>

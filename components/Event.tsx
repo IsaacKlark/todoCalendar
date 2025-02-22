@@ -5,6 +5,7 @@ import {
   TextInput,
   StyleSheet,
   TouchableOpacity,
+  Platform,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import RNPickerSelect from "react-native-picker-select";
@@ -35,7 +36,7 @@ const Event: React.FC<EventProps> = ({
     <View style={styles.container}>
       <Text style={styles.label}>Event Name</Text>
       <TextInput
-        style={styles.input}
+        style={Platform.OS === "web" ? styles.inputWeb : styles.input}
         placeholder="Event Name"
         value={eventName}
         onChangeText={setEventName}
@@ -45,54 +46,114 @@ const Event: React.FC<EventProps> = ({
       {/* Start Date & Time */}
       <Text style={styles.label}>Starts</Text>
       <View style={styles.row}>
-        <TouchableOpacity
-          onPress={() => editable && setShowStartDatePicker(true)}
-          style={styles.dateTimeInput}
-        >
-          <Text>{moment(startDate).format("MMM D, YYYY")}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => editable && setShowStartTimePicker(true)}
-          style={styles.dateTimeInput}
-        >
-          <Text>{moment(startTime).format("hh:mm A")}</Text>
-        </TouchableOpacity>
+        {Platform.OS === "web" ? (
+          <input
+            type="date"
+            value={startDate.toISOString().split("T")[0]}
+            disabled={!editable}
+            onChange={(e) => setStartDate(new Date(e.target.value))}
+            style={styles.inputWeb}
+          />
+        ) : (
+          <TouchableOpacity
+            onPress={() => editable && setShowStartDatePicker(true)}
+            style={styles.dateTimeInput}
+          >
+            <Text>{moment(startDate).format("MMM D, YYYY")}</Text>
+          </TouchableOpacity>
+        )}
+        {Platform.OS === "web" ? (
+          <input
+            type="time"
+            value={startTime.toTimeString().split(" ")[0]}
+            disabled={!editable}
+            onChange={(e) =>
+              setStartTime(
+                new Date(startDate.toDateString() + " " + e.target.value)
+              )
+            }
+            style={styles.inputWeb}
+          />
+        ) : (
+          <TouchableOpacity
+            onPress={() => editable && setShowStartTimePicker(true)}
+            style={styles.dateTimeInput}
+          >
+            <Text>{moment(startTime).format("hh:mm A")}</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* End Date & Time */}
       <Text style={styles.label}>Ends</Text>
       <View style={styles.row}>
-        <TouchableOpacity
-          onPress={() => editable && setShowEndDatePicker(true)}
-          style={styles.dateTimeInput}
-        >
-          <Text>{moment(endDate).format("MMM D, YYYY")}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => editable && setShowEndTimePicker(true)}
-          style={styles.dateTimeInput}
-        >
-          <Text>{moment(endTime).format("hh:mm A")}</Text>
-        </TouchableOpacity>
+        {Platform.OS === "web" ? (
+          <input
+            type="date"
+            value={endDate.toISOString().split("T")[0]}
+            onChange={(e) => setEndDate(new Date(e.target.value))}
+            disabled={!editable}
+            style={styles.inputWeb}
+          />
+        ) : (
+          <TouchableOpacity
+            onPress={() => editable && setShowEndDatePicker(true)}
+            style={styles.dateTimeInput}
+          >
+            <Text>{moment(endDate).format("MMM D, YYYY")}</Text>
+          </TouchableOpacity>
+        )}
+        {Platform.OS === "web" ? (
+          <input
+            type="time"
+            value={endTime.toTimeString().split(" ")[0]}
+            onChange={(e) =>
+              setEndTime(
+                new Date(endDate.toDateString() + " " + e.target.value)
+              )
+            }
+            disabled={!editable}
+            style={styles.inputWeb}
+          />
+        ) : (
+          <TouchableOpacity
+            onPress={() => editable && setShowEndTimePicker(true)}
+            style={styles.dateTimeInput}
+          >
+            <Text>{moment(endTime).format("hh:mm A")}</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Repeat */}
       <Text style={styles.label}>Repeat</Text>
-      <View style={styles.dropdownWrapper}>
-        <RNPickerSelect
-          disabled={!editable}
-          value={repeat}
-          onValueChange={(value) => setRepeat(value)}
-          items={Object.values(repeatsEnum).map((item) => ({
-            label: item,
-            value: item,
-          }))}
-          style={{
-            inputIOS: styles.inputDropdown,
-            inputAndroid: styles.inputDropdown,
-          }}
-        />
-      </View>
+      {Platform.OS === "web" ? (
+        <select
+          id="repeat"
+          onChange={(e) => setRepeat(e.target.value as repeatsEnum)}
+          style={styles.inputWeb}
+        >
+          <option>{repeatsEnum.biWeekly}</option>
+          <option>{repeatsEnum.monthly}</option>
+          <option>{repeatsEnum.weekly}</option>
+        </select>
+      ) : (
+        <View style={styles.dropdownWrapper}>
+          <RNPickerSelect
+            disabled={!editable}
+            value={repeat}
+            onValueChange={(value) => setRepeat(value)}
+            items={Object.values(repeatsEnum).map((item) => ({
+              label: item,
+              value: item,
+            }))}
+            style={{
+              inputIOS: styles.inputDropdown,
+              inputAndroid: styles.inputDropdown,
+            }}
+          />
+        </View>
+      )}
 
       {/* Date Pickers */}
       {showStartDatePicker && (
@@ -155,6 +216,18 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     borderRadius: 12,
   },
+  inputWeb: {
+    // @ts-ignore  
+    border: "2px solid rgb(255, 181, 44)",
+    backgroundColor: "#ffffff",
+    padding: 20,
+    borderRadius: 10,
+    flex: 1,
+    marginHorizontal: 5,
+    alignItems: "center",
+    marginBottom: 20,
+    outline: "none",
+  },
   label: {
     fontSize: 14,
     fontWeight: "bold",
@@ -175,6 +248,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
+    columnGap: 8,
   },
   dateTimeInput: {
     backgroundColor: "#ffffff",
